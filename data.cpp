@@ -8,7 +8,8 @@
 data::data(double init[3][3][3], int bodies_)
 {
 	G = 6.67408e-11;
-	dt = 0.01;
+	dt = 0.005;
+	runs = 1000;
 	acc = (int)Quantity::Acceleration;
 	vel = (int)Quantity::Velocity;
 	pos = (int)Quantity::Position;
@@ -32,9 +33,10 @@ data::data(double init[3][3][3], int bodies_)
 
 	datas.push_back(temp_data);
 
-	mass.push_back(10000);
-	mass.push_back(10000);
-	mass.push_back(10000);
+	double m = 6e20;
+	mass.push_back(m);
+	mass.push_back(m);
+	mass.push_back(m);
 }
 
 void data::write_datas()
@@ -67,7 +69,7 @@ void data::write_datas()
 void data::play()
 {
 	int c = 0; 
-	while (c < 1000)
+	while (c < runs-1)
 	{
 		iterate();
 		c++;
@@ -90,9 +92,9 @@ void data::iterate()
 			}
 		}
 	}
-	double acci = 0;
-	double veli = 0;
-	double posi = 0;
+	double acci;
+	double veli;
+	double posi;
 
 	for (int k = 0; k < 3; k++)
 	{
@@ -109,6 +111,9 @@ void data::iterate()
 			// posx0 = (*it)[i][pos][x];
 			// posy0 = (*it)[i][pos][y];
 			// posz0 = (*it)[i][pos][z];
+			acci = 0;
+			veli = 0;
+			posi = 0;
 			for (int j = 0; j < bodies; j++)
 			{
 				if (i == j)
@@ -121,31 +126,45 @@ void data::iterate()
 
 				if (pow(((*it)[i][pos][k] - (*it)[j][pos][k]),2) != 0)
 				{
-					acci += mass[j]/(pow(((*it)[i][pos][k] - (*it)[j][pos][k]),2));
+					if ((*it)[i][pos][k] - (*it)[j][pos][k] > 0)
+					{
+						acci -= mass[j]/(pow(((*it)[i][pos][k] - (*it)[j][pos][k]),2));
+					}
+					else
+					{
+						acci += mass[j]/(pow(((*it)[i][pos][k] - (*it)[j][pos][k]),2));	
+					}
 				}
 				// std::cout<<(*it)[i][acc][k] - (*it)[j][acc][k]<<std::endl;
 			}
-			std::cout<<G<<std::endl;
-			//acci *= G;
-			//std::cout<<"\tafter: "<<acci<<std::endl;
+			//std::cout<<G<<std::endl;
+			acci *= G;
+			// std::cout<<"acci: "<<acci<<std::endl;
 			veli = acci*dt + (*it)[i][vel][k];
-			std::cout<<"before: "<<veli<<std::endl;
-			posi = acci*pow(dt,2)/2 + (*it)[i][vel][k]*dt + (*it)[i][pos][k];
-
-			if (k == 2)
-			{
-				acci = 0;
-				veli = 0;
-				posi = 0;
-			}
+			
+			// if (true)
+			// {
+			// 	std::cout<<"veli: "<<(*it)[i][vel][k]<<std::endl;
+			// }
+			
+			//std::cout<<(*it)[i][vel][0]<<" "<<(*it)[i][vel][1]<<" "<<(*it)[i][vel][2]<<std::endl;
+			//posi = acci*pow(dt,2)/2 + (*it)[i][vel][k]*dt + (*it)[i][pos][k];
+			//posi = acci*pow(dt,2)/2 + veli*dt + (*it)[i][pos][k];
+			posi = veli*dt + (*it)[i][pos][k];
+			// if (k == 2)
+			// {
+			// 	acci = 0;
+			// 	veli = 0;
+			// 	posi = 0;
+			// }
 			temp_data[i][acc][k] = acci;
 			temp_data[i][vel][k] = veli;
 			temp_data[i][pos][k] = posi;
 
 		}
 	}
-
 	datas.push_back(temp_data);
+	// printData();
 }
 
 //datas[iteration][body][acc/vel/pos][x,y,z]
@@ -161,20 +180,20 @@ void data::printData()
 		for (int i = 0; i < bodies; i++)
 		{
 			std::cout<<"\tbody: "<<i<<std::endl;
-			std::cout<<"\t\taccel: ";
-			std::cout<<"("<<(*it)[i][acc][x]<<", ";
-			std::cout<<(*it)[i][acc][y]<<", ";
-			std::cout<<(*it)[i][acc][z]<<")"<<std::endl;
+			// std::cout<<"\t\taccel: ";
+			// std::cout<<"("<<(*it)[i][acc][x]<<", ";
+			// std::cout<<(*it)[i][acc][y]<<", ";
+			// std::cout<<(*it)[i][acc][z]<<")"<<std::endl;
 
 			std::cout<<"\t\tveloc: ";
 			std::cout<<"("<<(*it)[i][vel][x]<<", ";
 			std::cout<<(*it)[i][vel][y]<<", ";
 			std::cout<<(*it)[i][vel][z]<<")"<<std::endl;
 
-			std::cout<<"\t\tposit: ";
-			std::cout<<"("<<(*it)[i][pos][x]<<", ";
-			std::cout<<(*it)[i][pos][y]<<", ";
-			std::cout<<(*it)[i][pos][z]<<")"<<std::endl;
+			// std::cout<<"\t\tposit: ";
+			// std::cout<<"("<<(*it)[i][pos][x]<<", ";
+			// std::cout<<(*it)[i][pos][y]<<", ";
+			// std::cout<<(*it)[i][pos][z]<<")"<<std::endl;
 		}
 		c++;
 		it++;

@@ -28,6 +28,7 @@ private:
 	std::vector<double> mass; //masses in kg
 	//datas[iteration][body][acc/vel/pos][x,y,z]
 	int bodies;
+	int runs;
 	double G;
 	double dt;
 };

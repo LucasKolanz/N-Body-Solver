@@ -1,5 +1,4 @@
 #include <iostream>
-//#include </home/lucas/Desktop/3body/jsoncpp/include/json/value.h>
 #include <fstream>
 #include "numerics.h"
 #include "data.h"
@@ -13,11 +12,11 @@ int main(int argc, char const *argv[])
 						
 							{{0,0,0},
 							 {0,0,0},
-							 {0,30,0}},
+							 {0,5000,0}},
 						
 							{{0,0,0},
 							 {0,0,0},
-							 {30,30,30}}};
+							 {5000,5000,5000}}};
 	//init[body][acc/vel/pos][x,y,z]
 
 
@@ -27,7 +26,7 @@ int main(int argc, char const *argv[])
 
 	n.write_datas();
 
-	//n.printData();
+	n.printData();
 
 
 	return 0;
