@@ -5,7 +5,9 @@ import mpl_toolkits.mplot3d.axes3d as p3
 import matplotlib.animation as animation
 
 def get_data(total_iter,bodies=3, dim=3):
-    tmp = [[],[],[]]
+    tmp = []
+    for i in range(bodies):
+        tmp.append([])
     # print(return_me.shape)
     #return_me = return_me.tolist()
     c = 0
@@ -66,22 +68,24 @@ def update_lines(num, dataLines, lines):
 fig = plt.figure()
 ax = p3.Axes3D(fig)
 
+bodies = 4;
+
 # read data from file
 total_iter = get_iterations()
-data = get_data(total_iter,3,3)
+data = get_data(total_iter,bodies,3)
 # Creating "iterations" line objects.
 # NOTE: Can't pass empty arrays into 3d version of plot()
 lines = []
 # print(np.array(data))
-lines = [ax.plot(dat[0, 0:1], dat[1, 0:1], dat[2, 0:1],ms=10,lw = 5,label = '{}'.format(i))[0] for i,dat in enumerate(data)]
+lines = [ax.plot(dat[0, 0:1], dat[1, 0:1], dat[2, 0:1],ms=1,lw = 5,label = '{}'.format(i))[0] for i,dat in enumerate(data)]
 # Setting the axes properties
-ax.set_xlim3d([0.0, 5000.0])
+ax.set_xlim3d([0.0, 10.0e5])
 ax.set_xlabel('X')
 
-ax.set_ylim3d([0.0, 5000.0])
+ax.set_ylim3d([0.0, 10.0e5])
 ax.set_ylabel('Y')
 
-ax.set_zlim3d([0.0, 5000.0])
+ax.set_zlim3d([0.0, 10.0e5])
 ax.set_zlabel('Z')
 
 ax.set_title('3D Test')
@@ -89,6 +93,6 @@ fig.legend()
 
 # Creating the Animation object
 line_ani = animation.FuncAnimation(fig, update_lines, total_iter, fargs=(data, lines),
-                                    blit=False)
+                                    blit=False, interval=50)
 
 plt.show()

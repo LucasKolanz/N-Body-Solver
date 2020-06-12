@@ -5,11 +5,13 @@
 
 #include "data.h"
 
-data::data(double init[3][3][3], int bodies_)
+data::data(double init[][3][3], int bodies_)
 {
+
 	G = 6.67408e-11;
 	dt = 0.005;
-	runs = 1000;
+	runs = 5000;
+	current_iteration = 0;
 	acc = (int)Quantity::Acceleration;
 	vel = (int)Quantity::Velocity;
 	pos = (int)Quantity::Position;
@@ -17,8 +19,8 @@ data::data(double init[3][3][3], int bodies_)
 	y = (int)Direction::y;
 	z = (int)Direction::z;
 	bodies = bodies_;
-	double ***temp_data = new double**[3];
-	for (int i = 0; i < 3; i++)
+	double ***temp_data = new double**[bodies];
+	for (int i = 0; i < bodies; i++)
 	{
 		temp_data[i] = new double*[3];
 		for (int j = 0; j < 3; j++)
@@ -33,10 +35,11 @@ data::data(double init[3][3][3], int bodies_)
 
 	datas.push_back(temp_data);
 
-	double m = 6e20;
-	mass.push_back(m);
-	mass.push_back(m);
-	mass.push_back(m);
+	double m = 6e15;
+	for (int i = 0; i < bodies; i++)
+	{
+		mass.push_back(m);	
+	}
 }
 
 void data::write_datas()
@@ -78,9 +81,11 @@ void data::play()
 
 void data::iterate()
 {
+
 	std::vector<double***>::iterator it = --datas.end();
-	double ***temp_data = new double**[3];
-	for (int i = 0; i < 3; i++)
+	double ***temp_data = new double**[bodies];
+	//initializes a double*** to save the new data
+	for (int i = 0; i < bodies; i++)
 	{
 		temp_data[i] = new double*[3];
 		for (int j = 0; j < 3; j++)
@@ -92,16 +97,20 @@ void data::iterate()
 			}
 		}
 	}
+
 	double acci;
 	double veli;
 	double posi;
-
+	//distance between two bodies
+	double r;
+	//distance between two bodies same component
+	double r_vec;
+	//Iterate through x,y,z values
 	for (int k = 0; k < 3; k++)
 	{
-
+		//iterate through bodies
 		for (int i = 0; i < bodies; i++)
 		{
-	//std::cout<<(*it)[0][0][0]<<std::endl;
 			// accx0 = (*it)[i][acc][x];
 			// accy0 = (*it)[i][acc][y];
 			// accz0 = (*it)[i][acc][z];
@@ -111,60 +120,90 @@ void data::iterate()
 			// posx0 = (*it)[i][pos][x];
 			// posy0 = (*it)[i][pos][y];
 			// posz0 = (*it)[i][pos][z];
-			acci = 0;
-			veli = 0;
-			posi = 0;
+
+			//initial conditions (last iteration's value)
+
+			//is there an initail force? (impulse)
+			if (current_iteration != 0)
+			{
+				acci = 0;
+			}
+			else
+			{
+				acci = (*it)[i][acc][k];
+			}
+			veli = (*it)[i][vel][k];
+			posi = (*it)[i][pos][k];
+
+			//iterate through other bodies (to sum other bodies
+			//contributions to r, in F=Gmm/r^2)
+			if (k == 0 && current_iteration < 3 && current_iteration > -1 && i == 0)
+			{
+				std::cout<<"current iteration: "<<current_iteration<<std::endl;
+				std::cout<<"\tk: "<<k<<std::endl;
+				std::cout<<"\t\tposi: "<<posi<<std::endl;
+			}
 			for (int j = 0; j < bodies; j++)
 			{
+				//skip if looking at same body
 				if (i == j)
 				{
 					continue;
 				}
-				
-				// std::cout<<(*it)[i][pos][k]<<" ";
-				// std::cout<<(*it)[j][pos][k]<<std::endl;
 
-				if (pow(((*it)[i][pos][k] - (*it)[j][pos][k]),2) != 0)
+				//check if distance between two bodies same 
+				//components of position is zero (no force 
+				//in this direction)
+				r = 0;
+				if (((*it)[i][pos][k] - (*it)[j][pos][k]) != 0)
 				{
+					//determine value of r
+					for (int m = 0; m < 3; m++) 
+					{
+						r += pow((*it)[i][pos][m] - (*it)[j][pos][m],2);
+					}
+
+					//set value of r_vec
+					r_vec = pow((*it)[i][pos][k] - (*it)[j][pos][k],2);
+
+					//if the other body is behind, force is subtracted,
+					//otherwise its added
 					if ((*it)[i][pos][k] - (*it)[j][pos][k] > 0)
 					{
-						acci -= mass[j]/(pow(((*it)[i][pos][k] - (*it)[j][pos][k]),2));
+						acci -= mass[j]*r_vec/pow(r,3/2);
 					}
 					else
 					{
-						acci += mass[j]/(pow(((*it)[i][pos][k] - (*it)[j][pos][k]),2));	
+						acci += mass[j]*r_vec/pow(r,3/2);	
 					}
 				}
-				// std::cout<<(*it)[i][acc][k] - (*it)[j][acc][k]<<std::endl;
 			}
-			//std::cout<<G<<std::endl;
+			// if (k == 0 && current_iteration < 3 && current_iteration > -1 && i == 0)
+			// {
+			// 	std::cout<<"\t\tacc: "<<acci<<std::endl;
+			// }
+			//multiply acceleration by constant G
 			acci *= G;
-			// std::cout<<"acci: "<<acci<<std::endl;
-			veli = acci*dt + (*it)[i][vel][k];
-			
-			// if (true)
+			//find new velocity
+			veli += acci*dt;
+			//find new position
+			posi += veli*dt;
+			// if (k == 0 && current_iteration < 3 && current_iteration > -1 && i == 0)
 			// {
-			// 	std::cout<<"veli: "<<(*it)[i][vel][k]<<std::endl;
+			// 	std::cout<<"\t\tposii: "<<posi<<std::endl;
 			// }
-			
-			//std::cout<<(*it)[i][vel][0]<<" "<<(*it)[i][vel][1]<<" "<<(*it)[i][vel][2]<<std::endl;
-			//posi = acci*pow(dt,2)/2 + (*it)[i][vel][k]*dt + (*it)[i][pos][k];
-			//posi = acci*pow(dt,2)/2 + veli*dt + (*it)[i][pos][k];
-			posi = veli*dt + (*it)[i][pos][k];
-			// if (k == 2)
-			// {
-			// 	acci = 0;
-			// 	veli = 0;
-			// 	posi = 0;
-			// }
+
+			//update new data field with new data
 			temp_data[i][acc][k] = acci;
 			temp_data[i][vel][k] = veli;
 			temp_data[i][pos][k] = posi;
 
 		}
 	}
+	//add data field to vector
 	datas.push_back(temp_data);
-	// printData();
+	//iterate the current iteration
+	current_iteration++;
 }
 
 //datas[iteration][body][acc/vel/pos][x,y,z]
@@ -185,15 +224,15 @@ void data::printData()
 			// std::cout<<(*it)[i][acc][y]<<", ";
 			// std::cout<<(*it)[i][acc][z]<<")"<<std::endl;
 
-			std::cout<<"\t\tveloc: ";
-			std::cout<<"("<<(*it)[i][vel][x]<<", ";
-			std::cout<<(*it)[i][vel][y]<<", ";
-			std::cout<<(*it)[i][vel][z]<<")"<<std::endl;
+			// std::cout<<"\t\tveloc: ";
+			// std::cout<<"("<<(*it)[i][vel][x]<<", ";
+			// std::cout<<(*it)[i][vel][y]<<", ";
+			// std::cout<<(*it)[i][vel][z]<<")"<<std::endl;
 
-			// std::cout<<"\t\tposit: ";
-			// std::cout<<"("<<(*it)[i][pos][x]<<", ";
-			// std::cout<<(*it)[i][pos][y]<<", ";
-			// std::cout<<(*it)[i][pos][z]<<")"<<std::endl;
+			std::cout<<"\t\tposit: ";
+			std::cout<<"("<<(*it)[i][pos][x]<<", ";
+			std::cout<<(*it)[i][pos][y]<<", ";
+			std::cout<<(*it)[i][pos][z]<<")"<<std::endl;
 		}
 		c++;
 		it++;

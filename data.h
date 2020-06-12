@@ -9,7 +9,7 @@ enum class Direction { x, y, z };
 class data
 {
 public:
-	data(double init[3][3][3], int bodies_);
+	data(double init[][3][3], int bodies_);
 	~data();
 	//init[body][acc/vel/pos][x,y,z]
 	void printData();
@@ -29,6 +29,7 @@ private:
 	//datas[iteration][body][acc/vel/pos][x,y,z]
 	int bodies;
 	int runs;
+	int current_iteration;
 	double G;
 	double dt;
 };
