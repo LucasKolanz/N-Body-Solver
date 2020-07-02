@@ -54,6 +54,16 @@ def get_iterations():
                 return_me += 1
     return return_me
 
+def get_bodies():
+    return_me = 0
+    with open("write_data.txt", 'r') as f:
+        for line in f:
+            if line[1:5] == "body":
+                return_me += 1
+            elif line[:12] == "iteration: 1":
+                return return_me
+    return return_me
+
 def update_lines(num, dataLines, lines):
     for line, data in zip(lines, dataLines):
         # NOTE: there is no .set_data() for 3 dim data...
@@ -68,7 +78,8 @@ def update_lines(num, dataLines, lines):
 fig = plt.figure()
 ax = p3.Axes3D(fig)
 
-bodies = 2;
+bodies = get_bodies()
+print(bodies)
 
 # read data from file
 total_iter = get_iterations()
@@ -79,7 +90,7 @@ lines = []
 # print(np.array(data))
 lines = [ax.plot(dat[0, 0:1], dat[1, 0:1], dat[2, 0:1],ms=100,lw = 5,label = '{}'.format(i))[0] for i,dat in enumerate(data)]
 # Setting the axes properties
-lim = 1.519153500020739E+11#1.496e+11
+lim = 1.5
 ax.set_xlim3d([-lim, lim])
 ax.set_xlabel('X')
 
@@ -94,6 +105,6 @@ fig.legend()
 
 # Creating the Animation object
 line_ani = animation.FuncAnimation(fig, update_lines, total_iter, fargs=(data, lines),
-                                    blit=False, interval=5)
+                                    blit=False, interval=1)
 
 plt.show()

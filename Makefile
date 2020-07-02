@@ -8,7 +8,7 @@ all: main
 clean:
 	rm main main.o
 
-main: main.o main.cpp numerics.h data.h data.cpp
+main: main.o main.cpp numerics.h numerics.cpp data.h data.cpp
 	$(CXX) $(CXXFLAGS) numerics.cpp data.cpp main.o -o main
 
 # main: main.o main.cpp

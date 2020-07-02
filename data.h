@@ -2,23 +2,25 @@
 #define DATA_H
 
 #include <vector>
-
-enum class Quantity { Acceleration, Velocity, Position };
-enum class Direction { x, y, z };
+#include "numerics.h"
 
 class data
 {
 public:
-	data(double init[][3][3], int bodies_);
+	data(double init[][2][3], int bodies_);
 	~data();
 	//init[body][acc/vel/pos][x,y,z]
-	void printData();
+	void printData(double ***pm);
+	void printData(int num);
 	void play();
 	void write_datas();
+	void set_cental_force(bool set);
 private:
 	void iterate();
-
-	int acc;
+	numerics n;
+	bool central_force;
+	double total_time;
+	double current_time;
 	int vel;
 	int pos;
 	int x;
@@ -26,7 +28,7 @@ private:
 	int z;
 	std::vector<double***> datas;
 	std::vector<double> mass; //masses in kg
-	//datas[iteration][body][acc/vel/pos][x,y,z]
+	//datas[iteration][body][vel/pos][x,y,z]
 	int bodies;
 	int runs;
 	int current_iteration;
